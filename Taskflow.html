@@ -5,16 +5,323 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Taskflow</title>
 </head>
-
 <body>
     <!-- Header -->
     <header class="header">
-        <div class="container">
-            <h1 class="header-title">Taskflow</h1>
+        <div class="container-full">
+            <div class="header-content">
+                <h1 class="header-title">Taskflow</h1>
+                <div class="progress-container">
+                    <div class="progress-text">Progresso</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-fill"></div>
+                    </div>
+                    <div class="progress-percentage" id="progress-percentage">0%</div>
+                </div>
+            </div>
         </div>
     </header>
-<style>
-    * {
+
+    <!-- Main Layout -->
+    <div class="main-layout">
+        <!-- Tasks Area (Left) -->
+        <main class="main">
+            <div class="container">
+                <!-- Active Tasks -->
+                <div class="tasks-section">
+                    <h2 class="section-title">Tarefas Ativas</h2>
+                    <div class="tasks-grid" id="active-tasks-grid">
+                        <!-- Active task cards will be inserted here -->
+                    </div>
+                </div>
+                
+                <!-- Completed Tasks -->
+                <div class="tasks-section" id="completed-section" style="display: none;">
+                    <h2 class="section-title">Tarefas Concluídas</h2>
+                    <div class="tasks-grid" id="completed-tasks-grid">
+                        <!-- Completed task cards will be inserted here -->
+                    </div>
+                </div>
+                
+                <div class="empty-state" id="empty-state" style="display: none;">
+                    <div class="empty-state-text">Nenhuma tarefa criada ainda</div>
+                    <div class="empty-state-subtitle">Clique no botão + para começar</div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Notes Sidebar (Right) -->
+        <aside class="notes-sidebar" id="notes-sidebar">
+            <div class="notes-header">
+                <h3 class="notes-title">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
+                        <polyline points="14,2 14,8 20,8"></polyline>
+                    </svg>
+                    Anotações
+                </h3>
+                <span class="notes-count" id="notes-count">0</span>
+            </div>
+            <div class="notes-list" id="notes-list">
+                <!-- Notes will be inserted here -->
+            </div>
+            <div class="notes-empty" id="notes-empty">
+                <p>Nenhuma anotação</p>
+                <span>Clique no + para criar</span>
+            </div>
+        </aside>
+    </div>
+
+    <!-- History Button -->
+    <button class="history-button" id="history-button">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+            <path d="M3 3v5h5"></path>
+            <path d="M12 7v5l4 2"></path>
+        </svg>
+    </button>
+
+    <!-- FAB Button -->
+    <button class="fab-button" id="fab-button">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+    </button>
+
+    <!-- History Sidebar -->
+    <div class="history-sidebar" id="history-sidebar">
+        <div class="history-header">
+            <h3>Histórico</h3>
+            <button class="history-close" id="history-close">×</button>
+        </div>
+        <div class="history-content" id="history-content">
+            <!-- Deleted tasks will be shown here -->
+        </div>
+    </div>
+
+    <!-- History Overlay -->
+    <div class="history-overlay" id="history-overlay" style="display: none;"></div>
+
+    <!-- Create Task Modal -->
+    <div class="modal-overlay" id="modal-overlay" style="display: none;">
+        <div class="modal" id="create-modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Nova Tarefa</h2>
+                <button class="modal-close" id="modal-close">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Tabs -->
+            <div class="tabs">
+                <div class="tabs-list">
+                    <button class="tab-trigger active" data-tab="simple">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="9,11 12,14 22,4"></polyline>
+                            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                        </svg>
+                        Simples
+                    </button>
+                    <button class="tab-trigger" data-tab="timed">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12,6 12,12 16,14"></polyline>
+                        </svg>
+                        Temporária
+                    </button>
+                    <button class="tab-trigger" data-tab="list">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="8" y1="6" x2="21" y2="6"></line>
+                            <line x1="8" y1="12" x2="21" y2="12"></line>
+                            <line x1="8" y1="18" x2="21" y2="18"></line>
+                            <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                            <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                            <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                        </svg>
+                        Lista
+                    </button>
+                    <button class="tab-trigger" data-tab="listTimed">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <path d="M12 6v6l4 2"></path>
+                            <path d="M8 3.5A9 9 0 1 0 20.5 16"></path>
+                        </svg>
+                        Lista Temp.
+                    </button>
+                    <button class="tab-trigger" data-tab="notes">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
+                            <polyline points="14,2 14,8 20,8"></polyline>
+                        </svg>
+                        Anotações
+                    </button>
+                </div>
+
+                <!-- Tab Contents -->
+                <div class="tab-content">
+                    <!-- Common Fields -->
+                    <div class="form-group" id="title-field">
+                        <label for="task-title">Título *</label>
+                        <input type="text" id="task-title" placeholder="Digite o título da tarefa">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Cor</label>
+                        <div class="color-palette" id="color-palette">
+                            <div class="color-option" data-color="#fda4af" style="background-color: #fda4af" title="Rosa Suave"></div>
+                            <div class="color-option" data-color="#fdba74" style="background-color: #fdba74" title="Damasco"></div>
+                            <div class="color-option" data-color="#fde047" style="background-color: #fde047" title="Amarelo Creme"></div>
+                            <div class="color-option" data-color="#86efac" style="background-color: #86efac" title="Menta"></div>
+                            <div class="color-option active" data-color="#7dd3fc" style="background-color: #7dd3fc" title="Céu Claro"></div>
+                            <div class="color-option" data-color="#c4b5fd" style="background-color: #c4b5fd" title="Lavanda"></div>
+                        </div>
+                    </div>
+
+                    <!-- Tags System -->
+                    <div class="form-group">
+                        <label>Tags</label>
+                        <div class="tags-container">
+                            <div class="existing-tags" id="existing-tags">
+                                <!-- Existing tags will be displayed here -->
+                            </div>
+                            <button type="button" class="btn-add-tag" id="add-tag-btn">+ Adicionar Tag</button>
+                        </div>
+                    </div>
+
+                    <!-- Simple Tab -->
+                    <div class="tab-panel active" data-tab="simple">
+                        <div class="form-group">
+                            <label for="task-description">Descrição</label>
+                            <textarea id="task-description" placeholder="Descrição opcional"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Timed Tab -->
+                    <div class="tab-panel" data-tab="timed">
+                        <div class="form-group">
+                            <label for="task-description-timed">Descrição</label>
+                            <textarea id="task-description-timed" placeholder="Descrição opcional"></textarea>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="task-duration">Duração</label>
+                                <input type="number" id="task-duration" min="1" value="30">
+                            </div>
+                            <div class="form-group">
+                                <label for="task-duration-unit">Unidade</label>
+                                <select id="task-duration-unit">
+                                    <option value="minutes">Minutos</option>
+                                    <option value="hours">Horas</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- List Tab -->
+                    <div class="tab-panel" data-tab="list">
+                        <div class="form-group">
+                            <label>Itens da lista</label>
+                            <div class="list-input">
+                                <input type="text" id="new-item" placeholder="Adicionar item">
+                                <button type="button" id="add-item-btn">Adicionar</button>
+                            </div>
+                            <div class="items-container" id="items-container">
+                                <!-- List items will be added here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- List Timed Tab -->
+                    <div class="tab-panel" data-tab="listTimed">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="task-duration-list">Duração</label>
+                                <input type="number" id="task-duration-list" min="1" value="30">
+                            </div>
+                            <div class="form-group">
+                                <label for="task-duration-unit-list">Unidade</label>
+                                <select id="task-duration-unit-list">
+                                    <option value="minutes">Minutos</option>
+                                    <option value="hours">Horas</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Itens da lista</label>
+                            <div class="list-input">
+                                <input type="text" id="new-item-timed" placeholder="Adicionar item">
+                                <button type="button" id="add-item-timed-btn">Adicionar</button>
+                            </div>
+                            <div class="items-container" id="items-container-timed">
+                                <!-- List items will be added here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Notes Tab -->
+                    <div class="tab-panel" data-tab="notes">
+                        <div class="form-group">
+                            <label for="task-notes">Anotação</label>
+                            <textarea id="task-notes" placeholder="Escreva sua anotação aqui..." rows="6"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Actions -->
+            <div class="modal-actions">
+                <button class="btn btn-outline" id="cancel-btn">Cancelar</button>
+                <button class="btn btn-primary" id="save-btn">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tag Creation Modal -->
+    <div class="modal-overlay" id="tag-modal-overlay" style="display: none;">
+        <div class="modal small-modal" id="tag-modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Nova Tag</h2>
+                <button class="modal-close" id="tag-modal-close">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="modal-content">
+                <div class="form-group">
+                    <label for="tag-name">Nome da Tag</label>
+                    <input type="text" id="tag-name" placeholder="Digite o nome da tag">
+                </div>
+                
+                <div class="form-group">
+                    <label>Cor da Tag</label>
+                    <div class="color-palette" id="tag-color-palette">
+                        <div class="color-option active" data-color="#ef4444" style="background-color: #ef4444"></div>
+                        <div class="color-option" data-color="#f97316" style="background-color: #f97316"></div>
+                        <div class="color-option" data-color="#eab308" style="background-color: #eab308"></div>
+                        <div class="color-option" data-color="#22c55e" style="background-color: #22c55e"></div>
+                        <div class="color-option" data-color="#3b82f6" style="background-color: #3b82f6"></div>
+                        <div class="color-option" data-color="#a855f7" style="background-color: #a855f7"></div>
+                        <div class="color-option" data-color="#ec4899" style="background-color: #ec4899"></div>
+                        <div class="color-option" data-color="#06b6d4" style="background-color: #06b6d4"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="modal-actions">
+                <button class="btn btn-outline" id="tag-cancel-btn">Cancelar</button>
+                <button class="btn btn-primary" id="tag-save-btn">Salvar Tag</button>
+            </div>
+        </div>
+    </div>
+<style>  
+      * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
@@ -28,8 +335,12 @@ body {
 }
 
 .container {
-    max-width: 1200px;
-    margin: 0 auto;
+    max-width: 100%;
+    padding: 0 24px;
+}
+
+.container-full {
+    max-width: 100%;
     padding: 0 24px;
 }
 
@@ -42,18 +353,273 @@ body {
     z-index: 40;
 }
 
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 0;
+}
+
 .header-title {
     font-size: 1.5rem;
     font-weight: 600;
     color: #0f172a;
-    text-align: center;
-    padding: 16px 0;
 }
 
-/* Main */
+/* Progress Bar */
+.progress-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.progress-text {
+    font-size: 0.875rem;
+    color: #64748b;
+    font-weight: 500;
+}
+
+.progress-bar {
+    width: 120px;
+    height: 8px;
+    background: #e2e8f0;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #3b82f6, #10b981);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+    width: 0%;
+}
+
+.progress-percentage {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #0f172a;
+    min-width: 35px;
+}
+
+/* Main Layout - Two Column */
+.main-layout {
+    display: flex;
+    min-height: calc(100vh - 65px);
+}
+
+/* Main Tasks Area */
 .main {
+    flex: 1;
     padding: 32px 0;
-    min-height: calc(100vh - 80px);
+    min-width: 0;
+}
+
+/* Notes Sidebar */
+.notes-sidebar {
+    width: 320px;
+    min-width: 320px;
+    background: white;
+    border-left: 1px solid #e2e8f0;
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 65px);
+    position: sticky;
+    top: 65px;
+}
+
+.notes-header {
+    padding: 20px;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #f8fafc;
+}
+
+.notes-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #0f172a;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.notes-title svg {
+    color: #64748b;
+}
+
+.notes-count {
+    background: #e2e8f0;
+    color: #475569;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 12px;
+}
+
+.notes-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+}
+
+.notes-empty {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    color: #94a3b8;
+    text-align: center;
+    flex: 1;
+}
+
+.notes-empty p {
+    font-size: 0.875rem;
+    margin-bottom: 4px;
+}
+
+.notes-empty span {
+    font-size: 0.75rem;
+    color: #cbd5e1;
+}
+
+.notes-empty.show {
+    display: flex;
+}
+
+/* Note Card */
+.note-card {
+    background: #f8fafc;
+    border-radius: 10px;
+    padding: 14px;
+    margin-bottom: 12px;
+    border-left: 4px solid #fde047;
+    position: relative;
+    transition: all 0.2s ease;
+    animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.note-card:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.note-card:hover .note-actions {
+    opacity: 1;
+}
+
+.note-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 8px;
+}
+
+.note-date {
+    font-size: 0.7rem;
+    color: #94a3b8;
+    font-weight: 500;
+}
+
+.note-actions {
+    display: flex;
+    gap: 4px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.note-action-btn {
+    background: none;
+    border: none;
+    color: #64748b;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.note-action-btn:hover {
+    background: #e2e8f0;
+}
+
+.note-action-btn.edit:hover {
+    color: #3b82f6;
+}
+
+.note-action-btn.delete:hover {
+    color: #ef4444;
+}
+
+.note-action-btn.convert:hover {
+    color: #10b981;
+}
+
+.note-content {
+    font-size: 0.8125rem;
+    color: #475569;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-height: 120px;
+    overflow: hidden;
+    position: relative;
+}
+
+.note-content.expanded {
+    max-height: none;
+}
+
+.note-expand {
+    background: none;
+    border: none;
+    color: #3b82f6;
+    font-size: 0.75rem;
+    cursor: pointer;
+    padding: 4px 0;
+    margin-top: 4px;
+}
+
+.note-expand:hover {
+    text-decoration: underline;
+}
+
+.note-tag {
+    display: inline-block;
+    font-size: 0.65rem;
+    padding: 2px 6px;
+    border-radius: 8px;
+    color: white;
+    margin-top: 8px;
+}
+
+/* Tasks Sections */
+.tasks-section {
+    margin-bottom: 32px;
+}
+
+.section-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #0f172a;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #e2e8f0;
 }
 
 /* Tasks Grid */
@@ -61,7 +627,6 @@ body {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 24px;
-    margin-bottom: 80px;
 }
 
 .empty-state {
@@ -175,10 +740,34 @@ body {
     font-weight: 500;
     margin-bottom: 8px;
     font-size: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .task-title.completed {
     text-decoration: line-through;
+}
+
+.task-number {
+    background: #f1f5f9;
+    color: #64748b;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 12px;
+    min-width: 20px;
+    text-align: center;
+}
+
+.task-tag {
+    background: #3b82f6;
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: 12px;
+    margin-left: auto;
 }
 
 .task-description {
@@ -196,7 +785,6 @@ body {
     color: #475569;
     margin-bottom: 12px;
 }
-
 
 .task-items .task-item:not(:last-child) {
     margin-bottom: 8px;
@@ -227,11 +815,138 @@ body {
     margin-left: auto;
 }
 
-/* FAB Button */
+/* History Button */
+.history-button {
+    position: fixed;
+    bottom: 24px;
+    left: 24px;
+    width: 56px;
+    height: 56px;
+    background: #10b981;
+    border: none;
+    border-radius: 50%;
+    color: white;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    transition: all 0.2s ease;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.history-button:hover {
+    background: #059669;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+}
+
+/* History Sidebar */
+.history-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 350px;
+    height: 100vh;
+    background: white;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    z-index: 200;
+    display: flex;
+    flex-direction: column;
+}
+
+.history-sidebar.open {
+    transform: translateX(0);
+}
+
+.history-header {
+    padding: 24px;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.history-header h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #0f172a;
+}
+
+.history-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: #64748b;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.history-close:hover {
+    background: #f1f5f9;
+    color: #334155;
+}
+
+.history-content {
+    flex: 1;
+    padding: 24px;
+    overflow-y: auto;
+}
+
+.history-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.3);
+    z-index: 150;
+}
+
+.history-item {
+    background: #f8fafc;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 12px;
+    border-left: 4px solid #e2e8f0;
+}
+
+.history-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.history-item-title {
+    font-weight: 500;
+    color: #374151;
+    font-size: 0.875rem;
+}
+
+.restore-btn {
+    background: #10b981;
+    color: white;
+    border: none;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.restore-btn:hover {
+    background: #059669;
+}
+
 .fab-button {
     position: fixed;
     bottom: 24px;
-    right: 24px;
+    right: 344px;
     width: 56px;
     height: 56px;
     background: #0f172a;
@@ -349,7 +1064,6 @@ body {
     display: none;
 }
 
-
 .tab-content > .form-group:not(:last-child) {
     margin-bottom: 16px;
 }
@@ -406,13 +1120,92 @@ select:focus {
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-input[type="color"] {
-    width: 100%;
-    height: 40px;
-    padding: 4px;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
+/* Color Palette */
+.color-palette {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.color-option {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
     cursor: pointer;
+    border: 3px solid transparent;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.color-option:hover {
+    transform: scale(1.1);
+}
+
+.color-option.active {
+    border-color: #0f172a;
+    transform: scale(1.1);
+}
+
+.color-option.disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.color-option.disabled:hover {
+    transform: none;
+}
+
+/* Tags System */
+.tags-container {
+    margin-top: 8px;
+}
+
+.existing-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.tag-option {
+    background: #f1f5f9;
+    border: 2px solid transparent;
+    padding: 6px 12px;
+    border-radius: 16px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.tag-option:hover {
+    background: #e2e8f0;
+}
+
+.tag-option.selected {
+    border-color: currentColor;
+    color: white;
+}
+
+.btn-add-tag {
+    background: none;
+    border: 2px dashed #cbd5e1;
+    color: #64748b;
+    padding: 6px 12px;
+    border-radius: 16px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-add-tag:hover {
+    border-color: #94a3b8;
+    color: #475569;
+}
+
+/* Small Modal */
+.small-modal {
+    max-width: 400px;
 }
 
 textarea {
@@ -532,8 +1325,43 @@ textarea {
     flex: 1;
 }
 
+.modal-content {
+    padding: 0 24px;
+}
+
 /* Responsive */
+@media (max-width: 1024px) {
+    .notes-sidebar {
+        width: 280px;
+        min-width: 280px;
+    }
+    
+    .fab-button {
+        right: 304px;
+    }
+}
+
 @media (max-width: 768px) {
+    .main-layout {
+        flex-direction: column;
+    }
+    
+    .notes-sidebar {
+        width: 100%;
+        min-width: 100%;
+        height: auto;
+        max-height: 300px;
+        position: relative;
+        top: 0;
+        order: -1;
+        border-left: none;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    
+    .notes-list {
+        max-height: 200px;
+    }
+    
     .tasks-grid {
         grid-template-columns: 1fr;
         gap: 16px;
@@ -562,211 +1390,64 @@ textarea {
         flex-direction: column;
         gap: 8px;
     }
+
+    .header-content {
+        flex-direction: column;
+        gap: 12px;
+        align-items: flex-start;
+    }
+
+    .progress-container {
+        align-self: stretch;
+        justify-content: space-between;
+    }
+
+    .progress-bar {
+        flex: 1;
+        margin: 0 12px;
+    }
+
+    .history-sidebar {
+        width: 280px;
+    }
+    
+    .fab-button {
+        right: 24px;
+    }
 }
-</style>
-    <!-- Main Content -->
-    <main class="main">
-        <div class="container">
-            <div class="tasks-grid" id="tasks-grid">
-                <!-- Task cards will be inserted here -->
-            </div>
-            
-            <div class="empty-state" id="empty-state" style="display: none;">
-                <div class="empty-state-text">Nenhuma tarefa criada ainda</div>
-                <div class="empty-state-subtitle">Clique no botão + para começar</div>
-            </div>
-        </div>
-    </main>
-
-    <!-- FAB Button -->
-    <button class="fab-button" id="fab-button">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="12" y1="5" x2="12" y2="19"></line>
-            <line x1="5" y1="12" x2="19" y2="12"></line>
-        </svg>
-    </button>
-
-    <!-- Create Task Modal -->
-    <div class="modal-overlay" id="modal-overlay" style="display: none;">
-        <div class="modal" id="create-modal">
-            <div class="modal-header">
-                <h2 class="modal-title">Nova Tarefa</h2>
-                <button class="modal-close" id="modal-close">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
-                </button>
-            </div>
-
-            <!-- Tabs -->
-            <div class="tabs">
-                <div class="tabs-list">
-                    <button class="tab-trigger active" data-tab="simple">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polyline points="9,11 12,14 22,4"></polyline>
-                            <path d="m21,4-6.35,17.31-4.73-4.73L3,17.63"></path>
-                        </svg>
-                        Simples
-                    </button>
-                    <button class="tab-trigger" data-tab="timed">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="12" cy="12" r="10"></circle>
-                            <polyline points="12,6 12,12 16,14"></polyline>
-                        </svg>
-                        Temporária
-                    </button>
-                    <button class="tab-trigger" data-tab="list">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <line x1="8" y1="6" x2="21" y2="6"></line>
-                            <line x1="8" y1="12" x2="21" y2="12"></line>
-                            <line x1="8" y1="18" x2="21" y2="18"></line>
-                            <line x1="3" y1="6" x2="3.01" y2="6"></line>
-                            <line x1="3" y1="12" x2="3.01" y2="12"></line>
-                            <line x1="3" y1="18" x2="3.01" y2="18"></line>
-                        </svg>
-                        Lista
-                    </button>
-                    <button class="tab-trigger" data-tab="listTimed">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="12" cy="12" r="3"></circle>
-                            <path d="M12 1v6m0 6v6"></path>
-                            <path d="m15.14 8.86 4.95-4.95M3.86 3.86l4.95 4.95M8.86 15.14l-4.95 4.95M20.14 20.14l-4.95-4.95"></path>
-                        </svg>
-                        Lista Temp.
-                    </button>
-                    <button class="tab-trigger" data-tab="notes">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
-                            <polyline points="14,2 14,8 20,8"></polyline>
-                        </svg>
-                        Anotações
-                    </button>
-                </div>
-
-                <!-- Tab Contents -->
-                <div class="tab-content">
-                    <!-- Common Fields -->
-                    <div class="form-group" id="title-field">
-                        <label for="task-title">Título *</label>
-                        <input type="text" id="task-title" placeholder="Digite o título da tarefa">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="task-color">Cor</label>
-                        <input type="color" id="task-color" value="#3b82f6">
-                    </div>
-
-                    <!-- Simple Tab -->
-                    <div class="tab-panel active" data-tab="simple">
-                        <div class="form-group">
-                            <label for="task-description">Descrição</label>
-                            <textarea id="task-description" placeholder="Descrição opcional"></textarea>
-                        </div>
-                    </div>
-
-                    <!-- Timed Tab -->
-                    <div class="tab-panel" data-tab="timed">
-                        <div class="form-group">
-                            <label for="task-description-timed">Descrição</label>
-                            <textarea id="task-description-timed" placeholder="Descrição opcional"></textarea>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="task-duration">Duração</label>
-                                <input type="number" id="task-duration" min="1" value="30">
-                            </div>
-                            <div class="form-group">
-                                <label for="task-duration-unit">Unidade</label>
-                                <select id="task-duration-unit">
-                                    <option value="minutes">Minutos</option>
-                                    <option value="hours">Horas</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- List Tab -->
-                    <div class="tab-panel" data-tab="list">
-                        <div class="form-group">
-                            <label>Itens da lista</label>
-                            <div class="list-input">
-                                <input type="text" id="new-item" placeholder="Adicionar item">
-                                <button type="button" id="add-item-btn">Adicionar</button>
-                            </div>
-                            <div class="items-container" id="items-container">
-                                <!-- List items will be added here -->
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- List Timed Tab -->
-                    <div class="tab-panel" data-tab="listTimed">
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="task-duration-list">Duração</label>
-                                <input type="number" id="task-duration-list" min="1" value="30">
-                            </div>
-                            <div class="form-group">
-                                <label for="task-duration-unit-list">Unidade</label>
-                                <select id="task-duration-unit-list">
-                                    <option value="minutes">Minutos</option>
-                                    <option value="hours">Horas</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label>Itens da lista</label>
-                            <div class="list-input">
-                                <input type="text" id="new-item-timed" placeholder="Adicionar item">
-                                <button type="button" id="add-item-timed-btn">Adicionar</button>
-                            </div>
-                            <div class="items-container" id="items-container-timed">
-                                <!-- List items will be added here -->
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Notes Tab -->
-                    <div class="tab-panel" data-tab="notes">
-                        <div class="form-group">
-                            <label for="task-notes">Anotação</label>
-                            <textarea id="task-notes" placeholder="Escreva sua anotação aqui..." rows="6"></textarea>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Modal Actions -->
-            <div class="modal-actions">
-                <button class="btn btn-outline" id="cancel-btn">Cancelar</button>
-                <button class="btn btn-primary" id="save-btn">Salvar</button>
-            </div>
-        </div>
-    </div>
-
+        </style>
     <script>
-        // Taskflow - Task Manager Application
+      // Taskflow - Task Manager Application
 class Taskflow {
     constructor() {
         this.tasks = [];
+        this.deletedTasks = [];
+        this.tags = [];
+        this.taskCounter = 1;
         this.currentTab = 'simple';
         this.tempItems = [];
         this.timerInterval = null;
         this.isEditing = false;
         this.editingTaskId = null;
+        this.selectedColor = '#7dd3fc';
+        this.selectedTag = null;
         
         this.init();
     }
 
     init() {
         this.loadTasks();
+        this.loadDeletedTasks();
+        this.loadTags();
         this.setupEventListeners();
         this.setupStorageSync();
+        this.reorganizeTasks();
         this.renderTasks();
+        this.renderNotes();
+        this.renderTags();
+        this.updateProgress();
         this.startTimerUpdates();
         
-        // Debug: log that data was loaded
         console.log('Taskflow initialized with', this.tasks.length, 'tasks');
     }
 
@@ -775,6 +1456,20 @@ class Taskflow {
         // FAB Button
         document.getElementById('fab-button').addEventListener('click', () => {
             this.openModal();
+        });
+
+        // History Button
+        document.getElementById('history-button').addEventListener('click', () => {
+            this.openHistory();
+        });
+
+        // History Close
+        document.getElementById('history-close').addEventListener('click', () => {
+            this.closeHistory();
+        });
+
+        document.getElementById('history-overlay').addEventListener('click', () => {
+            this.closeHistory();
         });
 
         // Modal Close
@@ -791,6 +1486,47 @@ class Taskflow {
             if (e.target === e.currentTarget) {
                 this.closeModal();
             }
+        });
+
+        // Color selection
+        document.querySelectorAll('#color-palette .color-option').forEach(option => {
+            option.addEventListener('click', (e) => {
+                if (!e.target.classList.contains('disabled')) {
+                    this.selectColor(e.target.dataset.color);
+                }
+            });
+        });
+
+        // Tag management
+        document.getElementById('add-tag-btn').addEventListener('click', () => {
+            this.openTagModal();
+        });
+
+        document.getElementById('tag-modal-close').addEventListener('click', () => {
+            this.closeTagModal();
+        });
+
+        document.getElementById('tag-cancel-btn').addEventListener('click', () => {
+            this.closeTagModal();
+        });
+
+        document.getElementById('tag-save-btn').addEventListener('click', () => {
+            this.saveTag();
+        });
+
+        // Tag modal overlay
+        document.getElementById('tag-modal-overlay').addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) {
+                this.closeTagModal();
+            }
+        });
+
+        // Tag color selection
+        document.querySelectorAll('#tag-color-palette .color-option').forEach(option => {
+            option.addEventListener('click', (e) => {
+                document.querySelectorAll('#tag-color-palette .color-option').forEach(o => o.classList.remove('active'));
+                e.target.classList.add('active');
+            });
         });
 
         // Tab switching
@@ -827,23 +1563,144 @@ class Taskflow {
             this.saveTask();
         });
 
-        // ESC key to close modal
+        // ESC key to close modals
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && document.getElementById('modal-overlay').style.display === 'flex') {
-                this.closeModal();
+            if (e.key === 'Escape') {
+                if (document.getElementById('modal-overlay').style.display === 'flex') {
+                    this.closeModal();
+                }
+                if (document.getElementById('tag-modal-overlay').style.display === 'flex') {
+                    this.closeTagModal();
+                }
+                if (document.getElementById('history-sidebar').classList.contains('open')) {
+                    this.closeHistory();
+                }
             }
         });
     }
 
-    // Modal Management
+    // Color Selection
+    selectColor(color) {
+        this.selectedColor = color;
+        this.selectedTag = null;
+        
+        // Update visual selection
+        document.querySelectorAll('#color-palette .color-option').forEach(option => {
+            option.classList.remove('active');
+        });
+        document.querySelector(`#color-palette [data-color="${color}"]`).classList.add('active');
+        
+        // Enable color palette, disable tag selection
+        document.querySelectorAll('#color-palette .color-option').forEach(option => {
+            option.classList.remove('disabled');
+        });
+        document.querySelectorAll('#existing-tags .tag-option').forEach(tag => {
+            tag.classList.remove('selected');
+        });
+    }
+
+    // Tag Selection
+    selectTag(tagId) {
+        const tag = this.tags.find(t => t.id === tagId);
+        if (!tag) return;
+        
+        this.selectedTag = tag;
+        this.selectedColor = tag.color;
+        
+        // Update visual selection
+        document.querySelectorAll('#existing-tags .tag-option').forEach(tagEl => {
+            tagEl.classList.remove('selected');
+        });
+        document.querySelector(`#existing-tags [data-tag-id="${tagId}"]`).classList.add('selected');
+        
+        // Disable color palette
+        document.querySelectorAll('#color-palette .color-option').forEach(option => {
+            option.classList.remove('active');
+            option.classList.add('disabled');
+        });
+    }
+
+    // History Management
+    openHistory() {
+        document.getElementById('history-sidebar').classList.add('open');
+        document.getElementById('history-overlay').style.display = 'block';
+        this.renderHistory();
+    }
+
+    closeHistory() {
+        document.getElementById('history-sidebar').classList.remove('open');
+        document.getElementById('history-overlay').style.display = 'none';
+    }
+
+    renderHistory() {
+        const container = document.getElementById('history-content');
+        
+        if (this.deletedTasks.length === 0) {
+            container.innerHTML = `
+                <div style="text-align: center; padding: 40px 20px; color: #64748b;">
+                    <p>Nenhuma tarefa no histórico</p>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = '';
+        this.deletedTasks.forEach(task => {
+            const item = document.createElement('div');
+            item.className = 'history-item';
+            item.style.borderLeftColor = task.color;
+            
+            const typeLabel = task.type === 'notes' ? 'Anotação' : 'Tarefa';
+            
+            item.innerHTML = `
+                <div class="history-item-header">
+                    <span class="history-item-title">${task.type !== 'notes' && task.number ? '#' + task.number + ' ' : ''}${task.title}</span>
+                    <button class="restore-btn" onclick="taskflow.restoreTask('${task.id}')">
+                        Restaurar
+                    </button>
+                </div>
+                <div style="font-size: 0.75rem; color: #64748b;">
+                    ${typeLabel} excluída em ${new Date(task.deletedAt).toLocaleDateString()}
+                </div>
+            `;
+            
+            container.appendChild(item);
+        });
+    }
+
+    restoreTask(taskId) {
+        const taskIndex = this.deletedTasks.findIndex(t => t.id === taskId);
+        if (taskIndex === -1) return;
+        
+        const task = this.deletedTasks[taskIndex];
+        delete task.deletedAt;
+        
+        // Add back to active tasks
+        this.tasks.push(task);
+        this.deletedTasks.splice(taskIndex, 1);
+        
+        this.reorganizeTasks();
+        this.saveTasks();
+        this.saveDeletedTasks();
+        this.renderTasks();
+        this.renderNotes();
+        this.renderHistory();
+        this.updateProgress();
+        
+        console.log('Task restored:', task.title);
+    }
+
     openModal() {
         this.currentTab = 'simple';
         this.tempItems = [];
         this.isEditing = false;
         this.editingTaskId = null;
+        this.selectedTag = null;
+        this.selectedColor = '#7dd3fc';
         this.clearForm();
         this.switchTab('simple');
         this.updateModalTitle();
+        this.resetColorPalette();
         document.getElementById('modal-overlay').style.display = 'flex';
         
         // Focus on appropriate field
@@ -854,6 +1711,16 @@ class Taskflow {
         }
     }
 
+    resetColorPalette() {
+        document.querySelectorAll('#color-palette .color-option').forEach(option => {
+            option.classList.remove('active', 'disabled');
+        });
+        document.querySelector('#color-palette [data-color="#7dd3fc"]').classList.add('active');
+        document.querySelectorAll('#existing-tags .tag-option').forEach(tag => {
+            tag.classList.remove('selected');
+        });
+    }
+
     openEditModal(taskId) {
         const task = this.tasks.find(t => t.id === taskId);
         if (!task) return;
@@ -862,6 +1729,8 @@ class Taskflow {
         this.editingTaskId = taskId;
         this.currentTab = task.type;
         this.tempItems = task.items ? [...task.items] : [];
+        this.selectedColor = task.color;
+        this.selectedTag = task.tag || null;
         
         this.clearForm();
         this.switchTab(task.type);
@@ -903,7 +1772,29 @@ class Taskflow {
         if (task.type !== 'notes') {
             document.getElementById('task-title').value = task.title || '';
         }
-        document.getElementById('task-color').value = task.color || '#3b82f6';
+
+        // Update color selection
+        this.selectedColor = task.color;
+        document.querySelectorAll('#color-palette .color-option').forEach(option => {
+            option.classList.remove('active', 'disabled');
+        });
+        const colorOption = document.querySelector(`#color-palette [data-color="${task.color}"]`);
+        if (colorOption) {
+            colorOption.classList.add('active');
+        }
+
+        // Update tag selection
+        if (task.tag) {
+            this.selectedTag = task.tag;
+            const tagOption = document.querySelector(`#existing-tags [data-tag-id="${task.tag.id}"]`);
+            if (tagOption) {
+                tagOption.classList.add('selected');
+                document.querySelectorAll('#color-palette .color-option').forEach(option => {
+                    option.classList.remove('active');
+                    option.classList.add('disabled');
+                });
+            }
+        }
 
         // Type-specific fields
         if (task.type === 'simple' || task.type === 'timed') {
@@ -947,7 +1838,6 @@ class Taskflow {
 
     clearForm() {
         document.getElementById('task-title').value = '';
-        document.getElementById('task-color').value = '#3b82f6';
         document.getElementById('task-description').value = '';
         document.getElementById('task-description-timed').value = '';
         document.getElementById('task-duration').value = '30';
@@ -959,6 +1849,91 @@ class Taskflow {
         document.getElementById('task-notes').value = '';
         document.getElementById('items-container').innerHTML = '';
         document.getElementById('items-container-timed').innerHTML = '';
+    }
+
+    // Tag Management
+    openTagModal() {
+        document.getElementById('tag-modal-overlay').style.display = 'flex';
+        document.getElementById('tag-name').value = '';
+        document.getElementById('tag-name').focus();
+    }
+
+    closeTagModal() {
+        document.getElementById('tag-modal-overlay').style.display = 'none';
+    }
+
+    saveTag() {
+        const name = document.getElementById('tag-name').value.trim();
+        if (!name) return;
+        
+        const colorEl = document.querySelector('#tag-color-palette .color-option.active');
+        if (!colorEl) return;
+        
+        const tag = {
+            id: this.generateId(),
+            name: name,
+            color: colorEl.dataset.color,
+            createdAt: Date.now()
+        };
+        
+        this.tags.push(tag);
+        this.saveTags();
+        this.renderTags();
+        this.closeTagModal();
+        
+        console.log('Tag created:', tag.name);
+    }
+
+    renderTags() {
+        const container = document.getElementById('existing-tags');
+        container.innerHTML = '';
+        
+        this.tags.forEach(tag => {
+            const tagEl = document.createElement('div');
+            tagEl.className = 'tag-option';
+            tagEl.dataset.tagId = tag.id;
+            tagEl.style.backgroundColor = tag.color;
+            tagEl.style.color = 'white';
+            tagEl.textContent = tag.name;
+            tagEl.addEventListener('click', () => this.selectTag(tag.id));
+            container.appendChild(tagEl);
+        });
+    }
+
+    // Progress Management - UPDATED: Excludes notes from calculation
+    updateProgress() {
+        // Filter out notes - only count actual tasks
+        const actualTasks = this.tasks.filter(task => task.type !== 'notes');
+        const completedTasks = actualTasks.filter(task => task.done).length;
+        const totalTasks = actualTasks.length;
+        const percentage = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+        
+        document.getElementById('progress-fill').style.width = `${percentage}%`;
+        document.getElementById('progress-percentage').textContent = `${percentage}%`;
+    }
+
+    // Task Numbering and Organization - UPDATED: Excludes notes from numbering
+    reorganizeTasks() {
+        // Separate notes from tasks
+        const notes = this.tasks.filter(task => task.type === 'notes');
+        const actualTasks = this.tasks.filter(task => task.type !== 'notes');
+        
+        // Sort active tasks by creation date (oldest first)
+        const activeTasks = actualTasks.filter(task => !task.done).sort((a, b) => a.createdAt - b.createdAt);
+        
+        // Sort completed tasks by completion date (oldest first)
+        const completedTasks = actualTasks.filter(task => task.done).sort((a, b) => (a.doneAt || 0) - (b.doneAt || 0));
+        
+        // Reassign numbers to active tasks only
+        activeTasks.forEach((task, index) => {
+            task.number = index + 1;
+        });
+        
+        // Update task counter for next new task
+        this.taskCounter = activeTasks.length + 1;
+        
+        // Combine arrays: tasks first, then notes
+        this.tasks = [...activeTasks, ...completedTasks, ...notes];
     }
 
     // Tab Management
@@ -1043,36 +2018,33 @@ class Taskflow {
     saveTask() {
         // Validate required fields
         if (this.currentTab !== 'notes' && !document.getElementById('task-title').value.trim()) {
-            return; // Title required for all except notes
+            return;
         }
         
         if (this.currentTab === 'notes' && !document.getElementById('task-notes').value.trim()) {
-            return; // Notes content required for notes
+            return;
         }
         
         const now = Date.now();
         let task;
         
         if (this.isEditing) {
-            // Update existing task
             task = this.tasks.find(t => t.id === this.editingTaskId);
             if (!task) return;
-            
-            // Preserve timestamps for existing task
-            // Only update editable fields
         } else {
-            // Create new task
             task = {
                 id: this.generateId(),
                 type: this.currentTab,
+                number: this.currentTab !== 'notes' ? this.taskCounter++ : null,
                 done: false,
                 createdAt: now,
                 doneAt: null
             };
         }
 
-        // Update common fields
-        task.color = document.getElementById('task-color').value;
+        // Update task properties
+        task.color = this.selectedColor;
+        task.tag = this.selectedTag;
         
         if (this.currentTab !== 'notes') {
             task.title = document.getElementById('task-title').value.trim();
@@ -1080,7 +2052,7 @@ class Taskflow {
             task.title = `Anotação - ${new Date().toLocaleDateString()}`;
         }
 
-        // Add type-specific fields
+        // Type-specific fields
         if (this.currentTab === 'simple' || this.currentTab === 'timed') {
             const descField = this.currentTab === 'simple' ? 'task-description' : 'task-description-timed';
             task.description = document.getElementById(descField).value;
@@ -1095,7 +2067,6 @@ class Taskflow {
             const durationMs = duration * (unit === 'hours' ? 60 * 60 * 1000 : 60 * 1000);
             
             if (!this.isEditing) {
-                // Only set timers for new tasks
                 task.startTime = now;
                 task.endTime = now + durationMs;
                 task.pausedRemainingMs = null;
@@ -1115,12 +2086,60 @@ class Taskflow {
             this.tasks.unshift(task);
         }
         
+        this.reorganizeTasks();
         this.saveTasks();
         this.renderTasks();
+        this.renderNotes();
+        this.updateProgress();
         this.closeModal();
         
         const action = this.isEditing ? 'updated' : 'saved';
         console.log(`Task ${action}:`, task.title);
+    }
+
+    deleteTask(taskId) {
+        const taskIndex = this.tasks.findIndex(t => t.id === taskId);
+        if (taskIndex === -1) return;
+        
+        const task = this.tasks[taskIndex];
+        task.deletedAt = Date.now();
+        
+        // Move to deleted tasks
+        this.deletedTasks.push(task);
+        this.tasks.splice(taskIndex, 1);
+        
+        // Reorganize remaining tasks
+        this.reorganizeTasks();
+        
+        this.saveTasks();
+        this.saveDeletedTasks();
+        this.renderTasks();
+        this.renderNotes();
+        this.updateProgress();
+        
+        console.log('Task deleted:', task.title);
+    }
+
+    // Convert note to simple task
+    convertNoteToTask(noteId) {
+        const note = this.tasks.find(t => t.id === noteId);
+        if (!note || note.type !== 'notes') return;
+        
+        // Convert to simple task
+        note.type = 'simple';
+        note.title = note.title || `Tarefa de anotação`;
+        note.description = note.notes;
+        note.notes = null;
+        note.done = false;
+        note.doneAt = null;
+        
+        this.reorganizeTasks();
+        this.saveTasks();
+        this.renderTasks();
+        this.renderNotes();
+        this.updateProgress();
+        
+        console.log('Note converted to task:', note.title);
     }
 
     toggleTask(taskId) {
@@ -1162,8 +2181,10 @@ class Taskflow {
             }
         }
 
+        this.reorganizeTasks();
         this.saveTasks();
         this.renderTasks();
+        this.updateProgress();
     }
 
     toggleItem(taskId, itemId) {
@@ -1195,34 +2216,142 @@ class Taskflow {
             }
         }
 
+        this.reorganizeTasks();
         this.saveTasks();
         this.renderTasks();
+        this.updateProgress();
     }
 
-    deleteTask(taskId) {
-        this.tasks = this.tasks.filter(t => t.id !== taskId);
-        this.saveTasks(); // Save immediately
-        this.renderTasks();
-        console.log('Task deleted:', taskId);
+    // Render Notes in Sidebar
+    renderNotes() {
+        const notesList = document.getElementById('notes-list');
+        const notesEmpty = document.getElementById('notes-empty');
+        const notesCount = document.getElementById('notes-count');
+        
+        // Get all notes
+        const notes = this.tasks.filter(task => task.type === 'notes');
+        
+        // Update count
+        notesCount.textContent = notes.length;
+        
+        // Show/hide empty state
+        if (notes.length === 0) {
+            notesList.style.display = 'none';
+            notesEmpty.classList.add('show');
+            return;
+        }
+        
+        notesList.style.display = 'block';
+        notesEmpty.classList.remove('show');
+        
+        // Sort notes by creation date (newest first)
+        notes.sort((a, b) => b.createdAt - a.createdAt);
+        
+        // Render notes
+        notesList.innerHTML = '';
+        notes.forEach(note => {
+            const noteCard = this.createNoteCard(note);
+            notesList.appendChild(noteCard);
+        });
     }
 
-    // Rendering
+    createNoteCard(note) {
+        const card = document.createElement('div');
+        card.className = 'note-card';
+        card.style.borderLeftColor = note.color;
+        
+        const date = new Date(note.createdAt);
+        const dateStr = date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
+        const timeStr = date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        
+        const contentLength = note.notes ? note.notes.length : 0;
+        const needsExpand = contentLength > 150;
+        
+        card.innerHTML = `
+            <div class="note-header">
+                <span class="note-date">${dateStr} às ${timeStr}</span>
+                <div class="note-actions">
+                    <button class="note-action-btn convert" onclick="taskflow.convertNoteToTask('${note.id}')" title="Transformar em tarefa">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="9,11 12,14 22,4"></polyline>
+                            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                        </svg>
+                    </button>
+                    <button class="note-action-btn edit" onclick="taskflow.openEditModal('${note.id}')" title="Editar">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                            <path d="m18.5 2.5 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                        </svg>
+                    </button>
+                    <button class="note-action-btn delete" onclick="taskflow.deleteTask('${note.id}')" title="Excluir">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="3,6 5,6 21,6"></polyline>
+                            <path d="m19,6v14a2,2 0 0,1-2,2H7a2,2 0 0,1-2-2V6m3,0V4a2,2 0 0,1,2-2h4a2,2 0 0,1,2,2v2"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div class="note-content ${needsExpand ? '' : 'expanded'}" id="note-content-${note.id}">
+                ${this.escapeHtml(note.notes || '')}
+            </div>
+            ${needsExpand ? `<button class="note-expand" onclick="taskflow.toggleNoteExpand('${note.id}')">Ver mais</button>` : ''}
+            ${note.tag ? `<span class="note-tag" style="background-color: ${note.tag.color}">#${note.tag.name}</span>` : ''}
+        `;
+        
+        return card;
+    }
+
+    toggleNoteExpand(noteId) {
+        const content = document.getElementById(`note-content-${noteId}`);
+        const button = content.nextElementSibling;
+        
+        if (content.classList.contains('expanded')) {
+            content.classList.remove('expanded');
+            button.textContent = 'Ver mais';
+        } else {
+            content.classList.add('expanded');
+            button.textContent = 'Ver menos';
+        }
+    }
+
+    // Rendering Tasks (excluding notes)
     renderTasks() {
-        const grid = document.getElementById('tasks-grid');
+        const activeGrid = document.getElementById('active-tasks-grid');
+        const completedGrid = document.getElementById('completed-tasks-grid');
+        const completedSection = document.getElementById('completed-section');
         const emptyState = document.getElementById('empty-state');
         
-        if (this.tasks.length === 0) {
-            grid.innerHTML = '';
+        // Filter out notes - only render actual tasks
+        const actualTasks = this.tasks.filter(task => task.type !== 'notes');
+        
+        // Separate active and completed tasks
+        const activeTasks = actualTasks.filter(task => !task.done);
+        const completedTasks = actualTasks.filter(task => task.done);
+        
+        // Show/hide sections
+        if (actualTasks.length === 0) {
+            activeGrid.parentElement.style.display = 'none';
+            completedSection.style.display = 'none';
             emptyState.style.display = 'block';
             return;
         }
         
         emptyState.style.display = 'none';
-        grid.innerHTML = '';
+        activeGrid.parentElement.style.display = 'block';
+        completedSection.style.display = completedTasks.length > 0 ? 'block' : 'none';
         
-        this.tasks.forEach(task => {
+        // Render active tasks
+        activeGrid.innerHTML = '';
+        activeTasks.forEach(task => {
             const card = this.createTaskCard(task);
-            grid.appendChild(card);
+            activeGrid.appendChild(card);
+        });
+        
+        // Render completed tasks
+        completedGrid.innerHTML = '';
+        completedTasks.forEach(task => {
+            const card = this.createTaskCard(task);
+            completedGrid.appendChild(card);
         });
     }
 
@@ -1235,16 +2364,14 @@ class Taskflow {
             'simple': 'Simples',
             'timed': 'Temporária', 
             'list': 'Lista',
-            'listTimed': 'Lista Temp.',
-            'notes': 'Anotação'
+            'listTimed': 'Lista Temp.'
         };
         
         const typeIcons = {
-            'simple': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9,11 12,14 22,4"></polyline><path d="m21,4-6.35,17.31-4.73-4.73L3,17.63"></path></svg>',
+            'simple': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9,11 12,14 22,4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>',
             'timed': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12,6 12,12 16,14"></polyline></svg>',
             'list': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>',
-            'listTimed': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M12 1v6m0 6v6"></path><path d="m15.14 8.86 4.95-4.95M3.86 3.86l4.95 4.95M8.86 15.14l-4.95 4.95M20.14 20.14l-4.95-4.95"></path></svg>',
-            'notes': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14,2 14,8 20,8"></polyline></svg>'
+            'listTimed': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 6v6l4 2"></path></svg>'
         };
         
         let html = `
@@ -1266,19 +2393,19 @@ class Taskflow {
                             <path d="m19,6v14a2,2 0 0,1-2,2H7a2,2 0 0,1-2-2V6m3,0V4a2,2 0 0,1,2-2h4a2,2 0 0,1,2,2v2"></path>
                         </svg>
                     </button>
-                    ${task.type !== 'notes' ? `<input type="checkbox" class="task-checkbox" ${task.done ? 'checked' : ''} onchange="taskflow.toggleTask('${task.id}')">` : ''}
+                    <input type="checkbox" class="task-checkbox" ${task.done ? 'checked' : ''} onchange="taskflow.toggleTask('${task.id}')">
                 </div>
             </div>
             
-            <h3 class="task-title ${task.done ? 'completed' : ''}">${this.escapeHtml(task.title)}</h3>
+            <div class="task-title ${task.done ? 'completed' : ''}">
+                ${task.number ? `<span class="task-number">${task.number}</span>` : ''}
+                ${this.escapeHtml(task.title)}
+                ${task.tag ? `<span class="task-tag" style="background-color: ${task.tag.color}">#${task.tag.name}</span>` : ''}
+            </div>
         `;
         
         if (task.description) {
             html += `<p class="task-description">${this.escapeHtml(task.description)}</p>`;
-        }
-
-        if (task.notes) {
-            html += `<div class="task-notes" style="background: #f8fafc; padding: 12px; border-radius: 6px; margin-top: 8px; white-space: pre-wrap; font-size: 0.875rem; line-height: 1.5;">${this.escapeHtml(task.notes)}</div>`;
         }
         
         if (task.type === 'timed' || task.type === 'listTimed') {
@@ -1363,8 +2490,10 @@ class Taskflow {
             });
             
             if (hasUpdates) {
+                this.reorganizeTasks();
                 this.saveTasks();
                 this.renderTasks();
+                this.updateProgress();
             }
         }, 1000);
     }
@@ -1375,18 +2504,31 @@ class Taskflow {
             if (e.key === 'taskflow:tasks') {
                 this.loadTasks();
                 this.renderTasks();
+                this.renderNotes();
+                this.updateProgress();
+            }
+            if (e.key === 'taskflow:tags') {
+                this.loadTags();
+                this.renderTags();
+            }
+            if (e.key === 'taskflow:deletedTasks') {
+                this.loadDeletedTasks();
             }
         });
 
         // Save data before page unload
         window.addEventListener('beforeunload', () => {
             this.saveTasks();
+            this.saveDeletedTasks();
+            this.saveTags();
         });
 
         // Save data when page becomes hidden
         document.addEventListener('visibilitychange', () => {
             if (document.hidden) {
                 this.saveTasks();
+                this.saveDeletedTasks();
+                this.saveTags();
             }
         });
     }
@@ -1395,27 +2537,79 @@ class Taskflow {
     saveTasks() {
         try {
             localStorage.setItem('taskflow:tasks', JSON.stringify(this.tasks));
+            localStorage.setItem('taskflow:counter', this.taskCounter.toString());
             console.log('Tasks saved to localStorage:', this.tasks.length, 'tasks');
         } catch (error) {
             console.error('Error saving tasks to localStorage:', error);
         }
     }
 
+    saveDeletedTasks() {
+        try {
+            localStorage.setItem('taskflow:deletedTasks', JSON.stringify(this.deletedTasks));
+            console.log('Deleted tasks saved:', this.deletedTasks.length, 'tasks');
+        } catch (error) {
+            console.error('Error saving deleted tasks:', error);
+        }
+    }
+
+    saveTags() {
+        try {
+            localStorage.setItem('taskflow:tags', JSON.stringify(this.tags));
+            console.log('Tags saved:', this.tags.length, 'tags');
+        } catch (error) {
+            console.error('Error saving tags:', error);
+        }
+    }
+
     loadTasks() {
         try {
             const stored = localStorage.getItem('taskflow:tasks');
+            const counter = localStorage.getItem('taskflow:counter');
+            
             if (stored) {
                 this.tasks = JSON.parse(stored);
+                this.taskCounter = counter ? parseInt(counter) : this.tasks.length + 1;
                 console.log('Tasks loaded from localStorage:', this.tasks.length, 'tasks');
             } else {
                 console.log('No stored tasks found, loading initial data');
                 this.loadInitialData();
-                this.saveTasks(); // Save initial data
+                this.saveTasks();
             }
         } catch (error) {
             console.error('Error loading tasks from localStorage:', error);
             this.loadInitialData();
             this.saveTasks();
+        }
+    }
+
+    loadDeletedTasks() {
+        try {
+            const stored = localStorage.getItem('taskflow:deletedTasks');
+            if (stored) {
+                this.deletedTasks = JSON.parse(stored);
+                console.log('Deleted tasks loaded:', this.deletedTasks.length, 'tasks');
+            } else {
+                this.deletedTasks = [];
+            }
+        } catch (error) {
+            console.error('Error loading deleted tasks:', error);
+            this.deletedTasks = [];
+        }
+    }
+
+    loadTags() {
+        try {
+            const stored = localStorage.getItem('taskflow:tags');
+            if (stored) {
+                this.tags = JSON.parse(stored);
+                console.log('Tags loaded:', this.tags.length, 'tags');
+            } else {
+                this.tags = [];
+            }
+        } catch (error) {
+            console.error('Error loading tags:', error);
+            this.tags = [];
         }
     }
 
@@ -1425,9 +2619,11 @@ class Taskflow {
             {
                 id: 'task-1',
                 type: 'simple',
+                number: 1,
                 title: 'Comprar mantimentos',
                 description: 'Leite, pão, ovos e frutas',
-                color: '#3b82f6',
+                color: '#7dd3fc',
+                tag: null,
                 done: false,
                 createdAt: Date.now() - 3600000,
                 doneAt: null
@@ -1435,9 +2631,11 @@ class Taskflow {
             {
                 id: 'task-2', 
                 type: 'timed',
+                number: 2,
                 title: 'Exercício matinal',
                 description: '30 minutos de corrida',
-                color: '#10b981',
+                color: '#86efac',
+                tag: null,
                 done: false,
                 createdAt: Date.now() - 1800000,
                 doneAt: null,
@@ -1449,8 +2647,10 @@ class Taskflow {
             {
                 id: 'task-3',
                 type: 'list', 
+                number: 3,
                 title: 'Preparar apresentação',
-                color: '#8b5cf6',
+                color: '#c4b5fd',
+                tag: null,
                 done: false,
                 createdAt: Date.now() - 7200000,
                 doneAt: null,
@@ -1463,8 +2663,10 @@ class Taskflow {
             {
                 id: 'task-4',
                 type: 'listTimed',
+                number: 4,
                 title: 'Sessão de estudos',
-                color: '#f59e0b',
+                color: '#fdba74',
+                tag: null,
                 done: false,
                 createdAt: Date.now() - 5400000,
                 doneAt: null,
@@ -1481,24 +2683,50 @@ class Taskflow {
             {
                 id: 'task-5',
                 type: 'simple',
+                number: null,
                 title: 'Ligar para dentista',
                 description: 'Marcar consulta de rotina',
-                color: '#ef4444',
+                color: '#fda4af',
+                tag: null,
                 done: true,
                 createdAt: Date.now() - 10800000,
                 doneAt: Date.now() - 7200000
             },
             {
-                id: 'task-6',
+                id: 'note-1',
                 type: 'notes',
+                number: null,
                 title: 'Anotação - Reunião de projeto',
-                color: '#6366f1',
+                color: '#fde047',
+                tag: null,
                 done: false,
                 createdAt: Date.now() - 1800000,
                 doneAt: null,
                 notes: 'Pontos importantes discutidos:\n\n• Prazo do projeto: 15 de março\n• Equipe responsável: João, Maria e Pedro\n• Próxima reunião: sexta-feira às 14h\n\nLembrete: Preparar apresentação dos mockups para a próxima semana.'
+            },
+            {
+                id: 'note-2',
+                type: 'notes',
+                number: null,
+                title: 'Anotação - Ideias',
+                color: '#c4b5fd',
+                tag: null,
+                done: false,
+                createdAt: Date.now() - 3600000,
+                doneAt: null,
+                notes: 'Ideias para o novo projeto:\n- Interface mais limpa\n- Cores suaves\n- Animações sutis'
             }
         ];
+        
+        this.taskCounter = 5;
+        
+        // Initial tags
+        this.tags = [
+            { id: 'tag-1', name: 'Trabalho', color: '#3b82f6', createdAt: Date.now() - 86400000 },
+            { id: 'tag-2', name: 'Pessoal', color: '#10b981', createdAt: Date.now() - 86400000 }
+        ];
+        
+        this.saveTags();
     }
 
     // Utilities
@@ -1525,17 +2753,24 @@ class Taskflow {
     // Method to clear all data (for testing)
     clearAllData() {
         localStorage.removeItem('taskflow:tasks');
+        localStorage.removeItem('taskflow:deletedTasks');
+        localStorage.removeItem('taskflow:tags');
+        localStorage.removeItem('taskflow:counter');
         this.tasks = [];
+        this.deletedTasks = [];
+        this.tags = [];
+        this.taskCounter = 1;
         this.renderTasks();
+        this.renderNotes();
+        this.renderTags();
+        this.updateProgress();
         console.log('All data cleared');
     }
 }
 
-// Initialize the app
 const taskflow = new Taskflow();
 
-// Make taskflow globally available for onclick handlers
 window.taskflow = taskflow;
-    </script>
-</body>
+        </script>
+    </body>
 </html>
